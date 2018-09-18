@@ -2,23 +2,30 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 from werkzeug.exceptions import abort
+from wtforms import Form, StringField
+
 
 from jazz_hands.db import get_db
 
 bp = Blueprint('search', __name__)
 
 
-@bp.route('/')
+class PlayerSearchForm(Form):
+    search = StringField('Search for records with these players in the line-up: ')
+
+
+@bp.route('/', methods=('GET', 'POST'))
 def index():
-    db = get_db()
-    posts = db.execute(
-        'SELECT p.id, title, body, created, author_id, username'
-        ' FROM post p JOIN user u on p.author_id = u.id'
-        ' ORDER BY created DESC'
-    ).fetchall()
+    search_query = PlayerSearchForm(request.form)
+    if request.method == 'POST':
+        return search_results(search_query)
 
-    return render_template('blog/index.html', posts=posts)
+    return render_template('index.html', form=search_query)
 
+
+@bp.route('/results', methods=('GET',))
+def search_results(search_query):
+    pass
 
 # @bp.route('/create', methods=('GET', 'POST'))
 # def create():

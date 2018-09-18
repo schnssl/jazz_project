@@ -1,0 +1,15 @@
+<doctype html>
+<head>
+    <title>Jazz Hands Database</title>
+</head>
+
+<h2>Jazz Hands Database</h2>
+
+{% from "_formhelpers.html" import render_field %}
+<form method=post>
+  <dl>
+      <p>
+    {{ render_field(form.search) }}
+  </dl>
+    <p><input type=submit value=Search>
+</form>
