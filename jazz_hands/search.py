@@ -11,7 +11,7 @@ bp = Blueprint('search', __name__)
 
 
 class PlayerSearchForm(Form):
-    search = StringField('Search for records with these players in the line-up: ')
+    search = StringField('Search for records with these players in the line-up (separated by commas): ')
 
 
 @bp.route('/', methods=('GET', 'POST'))
@@ -25,28 +25,25 @@ def index():
 
 @bp.route('/results', methods=('GET',))
 def search_results(search_query):
-    pass
+    search_string = search_query.data['search']
+    players = search_string.split(', ')
 
-# @bp.route('/create', methods=('GET', 'POST'))
-# def create():
-#     if request.method == 'POST':
-#         title = request.form['title']
-#         body = request.form['body']
-#         error = None
-#
-#         if not title:
-#             error = 'Title is required'
-#
-#         if error is not None:
-#             flash(error)
-#         else:
-#             db = get_db()
-#             db.execute(
-#                 'INSERT INTO post (title, body, author_id)'
-#                 ' VALUES (?, ?, ?)',
-#                 (title, body, g.user['id'])
-#             )
-#             db.commit()
-#             return redirect(url_for('blog.index'))
-#
-#     return render_template('blog/create.html')
+    if not len(search_string):
+        return redirect('/')
+
+    db = get_db()
+    results = db.execute(
+        """SELECT * FROM album 
+            WHERE id = 
+          (SELECT album_id FROM band
+            WHERE player IN (?, ?)
+            GROUP BY album_id
+           HAVING COUNT(DISTINCT player) = ?)""",
+        (players[0], players[1], len(players))
+    ).fetchall()
+
+    if not results:
+        flash('No results found!')
+        return redirect('/')
+    else:
+        return render_template('results.html', results=results)

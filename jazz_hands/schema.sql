@@ -7,13 +7,9 @@ CREATE TABLE album (
     record_label TEXT,
     title TEXT NOT NULL,
     release_year DATE NOT NULL,
-    leader TEXT NOT NULL,
-    band_id INTEGER NOT NULL,
-    FOREIGN KEY (band_id) REFERENCES band (id)
-);
+    leader TEXT NOT NULL);
 
 CREATE TABLE band (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
     album_id INTEGER NOT NULL,
     player TEXT NOT NULL,
     instrument TEXT NOT NULL,
