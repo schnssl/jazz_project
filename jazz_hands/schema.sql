@@ -8,7 +8,7 @@ CREATE TABLE album (
     title TEXT NOT NULL,
     release_year DATE NOT NULL,
     leader TEXT NOT NULL,
-    band_id INTEGER NOT NULL
+    band_id INTEGER NOT NULL,
     FOREIGN KEY (band_id) REFERENCES band (id)
 );
 
