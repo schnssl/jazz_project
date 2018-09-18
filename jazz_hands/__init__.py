@@ -3,6 +3,7 @@ import os
 from flask import Flask
 
 from . import db
+from . import search
 
 
 def create_app(test_config=None):
@@ -27,6 +28,8 @@ def create_app(test_config=None):
         pass
 
     db.init_app(app)
+    app.register_blueprint(search.bp)
+    app.add_url_rule('/', endpoint='index')
 
     # A simple page that says hello
     @app.route('/hello')
