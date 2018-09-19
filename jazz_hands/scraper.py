@@ -10,38 +10,50 @@ html_doc = resp.content.decode()
 soup = BeautifulSoup(html_doc, 'html.parser')
 
 entries = soup.find_all('h3')
-db = sqlite3.connect(
+conn = sqlite3.connect(
             "C:/Users/johan/Documents/jazz_project/testing_db.db")
+cur = conn.cursor()
 
+db_album = []
+db_band = []
 i = 1
 for t in entries:
     text = t.text
-    try:
-        clean_text = unicodedata.normalize('NFKD', text)
-        text_items = clean_text.split('   ')
-        cat_num = text_items[0]
-        name = text_items[1].split(' - ')
-        artist = name[0]
-        title = name[1]
-        year = text_items[2]
+    clean_text = unicodedata.normalize('NFKD', text)
+    text_items = clean_text.split('   ')
+    if text_items[0] == 'List of albums/singles by record number:':
+        continue
+    cat_num = text_items[0]
+    name = text_items[1].split(' - ')
+    artist = name[0]
+    title = name[1]
+    year = 'not released' if 'not released' in title else text_items[2]
 
-        db.execute('INSERT INTO album (catalogue_number, record_label, title, release_year, leader)'
-                   ' VALUES (?, ?, ?, ?, ?)', (cat_num, 'Blue Note', title, year, artist))
-        db.commit()
+    tup = (cat_num, 'Blue Note', title, year, artist)
+    db_album.append(tup)
 
-        text = t.next_sibling[1:-2]
-        raw_lineup = text.split('; ')
-        clean_lineup = {}
-        for member in raw_lineup:
-            items = member.split(', ')
-            player = items[0]
-            instrument = items[1]
-            clean_instrument = instrument.split(' #')[0]
+    text = t.next_sibling[1:-2]
+    raw_lineup = text.split('; ')
+    clean_lineup = {}
+    for member in raw_lineup:
+        items = member.split(', ')
+        if len(items) == 1 and items[0] == '':
+            continue
+        player = items[0]
+        instrument = items[1]
+        clean_instrument = instrument.split(' #')[0]
+        tup = (i, player, clean_instrument)
+        db_band.append(tup)
 
-            db.execute('INSERT INTO band (album_id, player, instrument)'
-                       ' VALUES (?, ?, ?)', (i, player, clean_instrument))
-            db.commit()
+    i += 1
 
-        i += 1
-    except:
-        pass
+cur.executemany(
+    'INSERT INTO album (catalogue_number, record_label, title, release_year, leader) VALUES (?, ?, ?, ?, ?)',
+    db_album)
+
+
+cur.executemany(
+    'INSERT INTO band (album_id, player, instrument) VALUES (?, ?, ?)',
+    db_band)
+conn.commit()
+conn.close()
