@@ -1,13 +1,10 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, redirect, render_template, request
 )
-from werkzeug.exceptions import abort
 from wtforms import Form, StringField
 from flask_table import Table, Col
 
-# from jazz_hands.db import get_db
 from .app import db
-from .models import Album
 
 bp = Blueprint('search', __name__)
 
@@ -42,17 +39,15 @@ def search_results(search_query):
     if len(players) < 2:
         return redirect('/')
 
-    results = Album.query.all()
-    # db = get_db()
-    # results = db.engine.execute(
-    #     """SELECT * FROM album
-    #         WHERE id =
-    #       (SELECT album_id FROM band
-    #         WHERE player IN (?, ?)
-    #         GROUP BY album_id
-    #        HAVING COUNT(DISTINCT player) = ?)""",
-    #     (players[0], players[1], len(players))
-    # )
+    results = db.engine.execute(
+        """SELECT * FROM album
+            WHERE id =
+          (SELECT album_id FROM band
+            WHERE player IN (?, ?)
+            GROUP BY album_id
+           HAVING COUNT(DISTINCT player) = ?)""",
+        (players[0], players[1], len(players))
+    )
 
     if not results:
         flash('No results found!')
