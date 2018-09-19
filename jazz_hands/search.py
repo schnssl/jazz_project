@@ -5,7 +5,8 @@ from werkzeug.exceptions import abort
 from wtforms import Form, StringField
 from flask_table import Table, Col
 
-from jazz_hands.db import get_db
+# from jazz_hands.db import get_db
+from .app import db
 
 bp = Blueprint('search', __name__)
 
@@ -40,7 +41,7 @@ def search_results(search_query):
     if len(players) < 2:
         return redirect('/')
 
-    db = get_db()
+    # db = get_db()
     results = db.execute(
         """SELECT * FROM album 
             WHERE id = 
