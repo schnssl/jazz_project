@@ -1,3 +1,5 @@
+import sqlite3
+
 import requests
 import unicodedata
 from bs4 import BeautifulSoup
@@ -8,8 +10,10 @@ html_doc = resp.content.decode()
 soup = BeautifulSoup(html_doc, 'html.parser')
 
 entries = soup.find_all('h3')
-db = []
+db = sqlite3.connect(
+            "C:/Users/johan/Documents/jazz_project/testing_db.db")
 
+i = 1
 for t in entries:
     text = t.text
     try:
@@ -21,6 +25,10 @@ for t in entries:
         title = name[1]
         year = text_items[2]
 
+        db.execute('INSERT INTO album (catalogue_number, record_label, title, release_year, leader)'
+                   ' VALUES (?, ?, ?, ?, ?)', (cat_num, 'Blue Note', title, year, artist))
+        db.commit()
+
         text = t.next_sibling[1:-2]
         raw_lineup = text.split('; ')
         clean_lineup = {}
@@ -28,24 +36,12 @@ for t in entries:
             items = member.split(', ')
             player = items[0]
             instrument = items[1]
-            if instrument not in clean_lineup.keys():
-                clean_lineup[instrument] = player
-            else:
-                print(title)
+            clean_instrument = instrument.split(' #')[0]
 
-        entry = {'catalogue_number': cat_num, 'artist': artist, 'title': title, 'year': year,
-                 'line_up': clean_lineup
-                 }
+            db.execute('INSERT INTO band (album_id, player, instrument)'
+                       ' VALUES (?, ?, ?)', (i, player, clean_instrument))
+            db.commit()
 
-        db.append(entry)
+        i += 1
     except:
-        print(text)
-
-
-instruments = []
-for e in db:
-    band = e['line_up']
-    for k in band.keys():
-        k_clean = k.split(' #')[0]
-        if k_clean not in instruments:
-            instruments.append(k_clean)
+        pass
