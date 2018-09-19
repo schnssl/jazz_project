@@ -32,10 +32,18 @@ def index():
     return render_template('index.html', form=search_query)
 
 
+SCORE = 1
 SCORE_1 = 1  # first degree, i.e. is favorite
 SCORE_2 = 0.5  # second degree, i.e. played with favorite
 SCORE_3 = 0.25  # third degree, i.e. played with favorite's bandmates
 
+
+# def generate_network_and_score(df, players, degree):
+#     df.loc[df['player'].isin(players), 'score'] = SCORE / degree
+#     albums = df.loc[df['player'].isin(players), 'album_id'].unique()
+#     network = df.loc[(df['album_id'].isin(albums)) & ~(df['player'].isin(players)), 'player'].unique()
+#     # Todo return value, dedupe, score network? and implement below
+    
 
 def rank_records(df, favorite_players):
     df['score'] = 0
