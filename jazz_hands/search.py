@@ -3,7 +3,7 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 from wtforms import Form, StringField
-
+from flask_table import Table, Col
 
 from jazz_hands.db import get_db
 
@@ -12,6 +12,15 @@ bp = Blueprint('search', __name__)
 
 class PlayerSearchForm(Form):
     search = StringField('Search for records with these players in the line-up (separated by commas): ')
+
+
+class Results(Table):
+    id = Col('id', show=False)
+    label = Col('record_label')
+    cat_num = Col('catalogue_number')
+    title = Col('title')
+    release_date = Col('release_year')
+    leader = Col('leader')
 
 
 @bp.route('/', methods=('GET', 'POST'))
@@ -28,7 +37,7 @@ def search_results(search_query):
     search_string = search_query.data['search']
     players = search_string.split(', ')
 
-    if not len(search_string):
+    if len(players) < 2:
         return redirect('/')
 
     db = get_db()
@@ -46,4 +55,6 @@ def search_results(search_query):
         flash('No results found!')
         return redirect('/')
     else:
-        return render_template('results.html', results=results)
+        table = Results(results)
+        table.border = True
+        return render_template('results.html', table=table)
