@@ -42,7 +42,7 @@ def search_results(search_query):
         return redirect('/')
 
     # db = get_db()
-    results = db.execute(
+    results = db.engine.execute(
         """SELECT * FROM album 
             WHERE id = 
           (SELECT album_id FROM band
@@ -50,7 +50,7 @@ def search_results(search_query):
             GROUP BY album_id
            HAVING COUNT(DISTINCT player) = ?)""",
         (players[0], players[1], len(players))
-    ).fetchall()
+    )
 
     if not results:
         flash('No results found!')
