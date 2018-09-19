@@ -7,6 +7,7 @@ from flask_table import Table, Col
 
 # from jazz_hands.db import get_db
 from .app import db
+from .models import Album
 
 bp = Blueprint('search', __name__)
 
@@ -17,10 +18,10 @@ class PlayerSearchForm(Form):
 
 class Results(Table):
     id = Col('id', show=False)
-    label = Col('record_label')
-    cat_num = Col('catalogue_number')
+    record_label = Col('record_label')
+    catalogue_number = Col('catalogue_number')
     title = Col('title')
-    release_date = Col('release_year')
+    release_year = Col('release_year')
     leader = Col('leader')
 
 
@@ -41,16 +42,17 @@ def search_results(search_query):
     if len(players) < 2:
         return redirect('/')
 
+    results = Album.query.all()
     # db = get_db()
-    results = db.engine.execute(
-        """SELECT * FROM album 
-            WHERE id = 
-          (SELECT album_id FROM band
-            WHERE player IN (?, ?)
-            GROUP BY album_id
-           HAVING COUNT(DISTINCT player) = ?)""",
-        (players[0], players[1], len(players))
-    )
+    # results = db.engine.execute(
+    #     """SELECT * FROM album
+    #         WHERE id =
+    #       (SELECT album_id FROM band
+    #         WHERE player IN (?, ?)
+    #         GROUP BY album_id
+    #        HAVING COUNT(DISTINCT player) = ?)""",
+    #     (players[0], players[1], len(players))
+    # )
 
     if not results:
         flash('No results found!')

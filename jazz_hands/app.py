@@ -5,11 +5,12 @@ from flask_sqlalchemy import SQLAlchemy
 
 # from . import db_setup
 
+file_path = os.path.join(os.path.abspath(os.getcwd()), 'testing_db.db')
 
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_mapping(
     SECRET_KEY='dev',
-    SQLALCHEMY_DATABASE_URI='sqlite:///jazz_hands/testing_db.sqlite',
+    SQLALCHEMY_DATABASE_URI='sqlite:///' + file_path,
 )
 
 # if test_config is None:
