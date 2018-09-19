@@ -33,20 +33,24 @@ def index():
 
 @bp.route('/results', methods=('GET',))
 def search_results(search_query):
-    search_string = search_query.data['search']
+    search_string = search_query.data['search'].title()
     players = search_string.split(', ')
+    n = len(players)
+    players.append(n)
 
-    if len(players) < 2:
+    if n < 1:
         return redirect('/')
 
     results = db.engine.execute(
         """SELECT * FROM album
             WHERE id =
           (SELECT album_id FROM band
-            WHERE player IN (?, ?)
+            WHERE player IN (""" +
+        ','.join('?' * n) +  # handles different lengths of args
+        """)
             GROUP BY album_id
            HAVING COUNT(DISTINCT player) = ?)""",
-        (players[0], players[1], len(players))
+        players
     )
 
     if not results:
