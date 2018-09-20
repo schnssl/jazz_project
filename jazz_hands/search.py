@@ -52,7 +52,7 @@ def rank_records(df, network):
         df['score'] = df.apply(lambda x:
                                network[network.index == x.player].values[0] / i
                                if x.player in network.index
-                                  and x.score < network[network.index == x.player].values[0] / i
+                               and x.score < network[network.index == x.player].values[0] / i
                                else x.score,
                                axis=1)
 
