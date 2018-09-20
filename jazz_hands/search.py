@@ -32,33 +32,29 @@ def index():
     return render_template('index.html', form=search_query)
 
 
-SCORE = 1
-SCORE_1 = 1  # first degree, i.e. is favorite
-SCORE_2 = 0.5  # second degree, i.e. played with favorite
-SCORE_3 = 0.25  # third degree, i.e. played with favorite's bandmates
+def generate_network_layer(df, network_above):
+    albums = df.loc[df['player'].isin(network_above), 'album_id'].unique()
+    network = df.loc[(df['album_id'].isin(albums)) & ~(df['player'].isin(network_above)), 'player'].value_counts()
+
+    return network
 
 
-# def generate_network_and_score(df, players, degree):
-#     df.loc[df['player'].isin(players), 'score'] = SCORE / degree
-#     albums = df.loc[df['player'].isin(players), 'album_id'].unique()
-#     network = df.loc[(df['album_id'].isin(albums)) & ~(df['player'].isin(players)), 'player'].unique()
-#     # Todo return value, dedupe, score network? and implement below
-    
+SCORE_CONST = 20
+NET_RANGE = 3
 
-def rank_records(df, favorite_players):
+
+def rank_records(df, network):
     df['score'] = 0
-    for fav in favorite_players:
-        df.loc[df['player'] == fav, 'score'] = SCORE_1
-        fav_albums = df.loc[df['player'] == fav, 'album_id']
 
-        fav_mates = df.loc[(df['album_id'].isin(fav_albums)) & (df['player'] != fav), 'player'].unique()
-        df.loc[df['player'].isin(fav_mates), 'score'] = SCORE_2
-        fav_albums2 = df.loc[df['player'].isin(fav_mates), 'album_id'].unique()
-        fav_albums2_dedupe = [a for a in fav_albums2 if a not in fav_albums]
-
-        fav_mates2 = df.loc[(df['album_id'].isin(fav_albums2_dedupe)) & (df['player'] != fav)
-                            & ~(df['player'].isin(fav_mates)), 'player'].unique()
-        df.loc[df['player'].isin(fav_mates2), 'score'] = SCORE_3
+    df.loc[df['player'].isin(network), 'score'] = SCORE_CONST
+    for i in range(1, NET_RANGE + 1):
+        network = generate_network_layer(df, network)
+        df['score'] = df.apply(lambda x:
+                               network[network.index == x.player].values[0] / i
+                               if x.player in network.index
+                                  and x.score < network[network.index == x.player].values[0] / i
+                               else x.score,
+                               axis=1)
 
     res = df.groupby('album_id')['score'].sum()
 
